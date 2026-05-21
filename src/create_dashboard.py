@@ -7,7 +7,7 @@ import os
 conn = sqlite3.connect('exchange_warehouse.db')
 
 # 2. Get the Top 5 currencies for the chart
-query = "SELECT currency, avg_rate FROM currency_rates ORDER BY avg_rate DESC LIMIT 5"
+query = "SELECT currency, AVG(rate) as avg_rate FROM currency_rates GROUP BY currency ORDER BY avg_rate DESC LIMIT 5"
 df = pd.read_sql_query(query, conn)
 
 # 3. Create the Plot
