@@ -7,7 +7,8 @@ import glob
 conn = sqlite3.connect('exchange_warehouse.db')
 
 # 2. Find all daily CSVs in your data folder
-path = 'data/*.csv'
+path = './data/*.csv'
+print(f"Checking for files in: {os.path.abspath(path)}")
 all_files = glob.glob(path)
 
 if not all_files:
