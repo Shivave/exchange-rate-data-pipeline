@@ -27,11 +27,12 @@ jobs:
           mkdir -p data
           python src/extract_rates.py
           python src/analyze_data.py
+          python src/create_dashboard.py
 
       - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/*.csv || echo "No changes to add"
-          git commit -m "Automated data update and SQL analysis: $(date)" || exit 0
+          git add data/*.csv reports/*.png
+          git commit -m "Automated update: Data, SQL, and Dashboard: $(date)" || exit 0
           git push
