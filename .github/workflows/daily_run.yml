@@ -22,17 +22,16 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run extraction
-        run: python src/extract_rates.py
-
-      - name: Run SQL analysis
-        run: python src/analyze_data.py
+      - name: Run extraction and analysis
+        run: |
+          mkdir -p data
+          python src/extract_rates.py
+          python src/analyze_data.py
 
       - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          mkdir -p data
           git add data/*.csv || echo "No changes to add"
           git commit -m "Automated data update and SQL analysis: $(date)" || exit 0
           git push
