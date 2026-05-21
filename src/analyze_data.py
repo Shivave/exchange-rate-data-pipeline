@@ -3,40 +3,41 @@ import sqlite3
 import os
 import glob
 
-# 1. Connect to a local SQL database (This creates the file if it doesn't exist)
+# 1. Setup paths relative to this script
+# This ensures it works on your laptop AND on GitHub
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+data_folder = os.path.join(project_root, 'data')
+pattern = os.path.join(data_folder, '*.csv')
+
+# 2. Connect to SQL
 conn = sqlite3.connect('exchange_warehouse.db')
 
-# 2. Find all daily CSVs in your data folder
-path = './data/*.csv'
-print(f"Checking for files in: {os.path.abspath(path)}")
-all_files = glob.glob(path)
+# 3. Load files
+all_files = glob.glob(pattern)
 
 if not all_files:
-    print("No data found to analyze! Please run the extraction script first.")
+    print(f"❌ Error: No CSV files found in {data_folder}")
+    print(f"Checking path: {pattern}")
 else:
-    # Combine all individual daily files into one Master DataFrame
     df_list = [pd.read_csv(f) for f in all_files]
     master_df = pd.concat(df_list, ignore_index=True)
-    
-    # Push the data into a SQL table named 'currency_rates'
     master_df.to_sql('currency_rates', conn, if_exists='replace', index=False)
 
-    # 3. THE SQL ENGINE: Run a professional analytical query
-    # We are calculating average rates and volatility (max price - min price)
+    # 4. SQL Analysis
     query = """
     SELECT 
         currency,
-        AVG(rate) as average_rate,
-        MAX(rate) - MIN(rate) as volatility
+        ROUND(AVG(rate), 4) as avg_rate,
+        ROUND(MAX(rate) - MIN(rate), 4) as volatility
     FROM currency_rates
     GROUP BY currency
-    ORDER BY volatility DESC
+    ORDER BY avg_rate DESC
+    LIMIT 10
     """
     
     results = pd.read_sql_query(query, conn)
-    
-    print("\n--- SQL ANALYSIS RESULTS ---")
+    print("\n📊 --- TOP 10 CURRENCIES BY VALUE (SQL) ---")
     print(results)
     
-    # Close the connection
     conn.close()
